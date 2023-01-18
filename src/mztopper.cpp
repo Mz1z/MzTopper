@@ -5,7 +5,7 @@
 HWND g_hWnd = NULL;
 char g_window_name[255] = {0};
 
-BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK FindWindowProc(HWND hwnd, LPARAM lParam)
 {
     char szTitle[MAX_PATH] = { 0 };
     GetWindowText(hwnd, szTitle, MAX_PATH);
@@ -20,21 +20,48 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
+BOOL CALLBACK ShowWindowsProc(HWND hwnd, LPARAM lParam)
+{
+    char szTitle[MAX_PATH] = { 0 };
+    GetWindowText(hwnd, szTitle, MAX_PATH);
+    // printf("%s\n", szTitle);
+	
+    if (strlen(szTitle) != 0)
+    {
+		printf("%s \n", szTitle);
+    }
+    return TRUE;
+}
+
 void show_usage(){
-	puts("> usage: mztopper.exe pin [window_name]");
-	puts("> usage: mztopper.exe unpin [window_name]");
+	puts("> usage: mztopper.exe show    # show all windows on your desktop ");
+	puts("> usage: mztopper.exe pin [window_name] ");
+	puts("> usage: mztopper.exe unpin [window_name] ");
 }
 
 int main(int argc, char* argv[]){
-	if (argc < 3){
+	if (argc < 2){
 		show_usage();
 		exit(-2);
 	}
-	strcpy(g_window_name, argv[2]);
-	EnumWindows(EnumWindowsProc, NULL);   // 枚举并查找窗口
+	
+	// 显示所有窗口名
+	if (strcmp(argv[1], "show") == 0){
+		EnumWindows(ShowWindowsProc, NULL);
+		exit(0);
+	}
 
+	if (argc < 3){
+		show_usage();
+		exit(-1);
+	}
+
+
+	strcpy(g_window_name, argv[2]);
+	EnumWindows(FindWindowProc, NULL);   // 枚举并查找窗口
+	
 	if (g_hWnd == NULL){
-		printf("not find this window. \n");
+		printf("> not find this window. \n");
 		exit(-1);
 	}
 
@@ -47,6 +74,7 @@ int main(int argc, char* argv[]){
 			);
 		printf("> %s is on top now. \n", g_window_name);
 	}else if (strcmp(argv[1], "unpin") == 0){
+		// 取消置顶窗口
 		SetWindowPos(g_hWnd, HWND_NOTOPMOST, 
 			0, 0, 
 			0, 0,
